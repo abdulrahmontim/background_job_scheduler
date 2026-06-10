@@ -2,44 +2,48 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: ["*"]
   pull_request:
     branches: [main]
 
 jobs:
   test:
-    name: Test on Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        python-version: ['3.13']
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: scheduler_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/scheduler_test
+      SECRET_KEY: ci-secret-key-not-used-in-prod
+      DLQ_ALERT_THRESHOLD: 10
+      STARVATION_THRESHOLD_MINUTES: 15
+      WORKER_POLL_INTERVAL: 1
 
     steps:
-      - name: Check out repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-          cache: 'pip'
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          python -m pip install \
-            "alembic>=1.18.4" \
-            "asyncpg>=0.31.0" \
-            "fastapi[standard]>=0.136.3" \
-            "httpx>=0.28.1" \
-            "pydantic-settings>=2.14.1" \
-            "python-dotenv>=1.2.2" \
-            "sqlalchemy>=2.0.50" \
-            "structlog>=26.1.0" \
-            "uuid6>=2025.0.1" \
-            "pytest>=9.0.3" \
-            "pytest-asyncio>=1.4.0" \
-            "respx>=0.23.1"
+        run: uv sync
+
+      - name: Run migrations
+        run: uv run alembic upgrade head
 
       - name: Run tests
-        run: python -m pytest -q
+        run: uv run pytest tests/ -v
