@@ -1,4 +1,3 @@
-from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from uuid import UUID
@@ -85,12 +84,6 @@ class JobQuery:
         job = await self.get_job_by_id(job_id)
         if not job:
             return None
-        
-        if job.status == JobStatus.PROCESSING:
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail="The job is being processed, only pending jobs can be cancelled."
-            )
         
         job.status = JobStatus.CANCELLED
         await self.db.commit()

@@ -42,7 +42,17 @@ class JobService:
     
     
     async def cancel_job(self, job_id: UUID):
+        
+        job = await self.query.get_job_by_id(job_id)
+        
+        if not job:
+            return None
+        
+        if job.status == JobStatus.PROCESSING:
+            raise ValueError("The job is being processed, only pending jobs can be cancelled.")
+        
         return await self.query.cancel_job(job_id)
+
         
 
     async def get_pending_due_jobs(self):

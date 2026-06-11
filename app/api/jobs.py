@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 
 from app.database import get_db
 from app.dependencies import get_job_query, get_job_service
@@ -41,5 +41,12 @@ async def get_job(job_id: UUID, service: JobService = Depends(get_job_service)):
 
 @router.post("/{job_id}/cancel")
 async def cancel_job(job_id: UUID, service: JobService = Depends(get_job_service)):
+    try:
+        job = await service.cancel_job(job_id)
+        if not job:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found" )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    
     return await service.cancel_job(job_id)
 
