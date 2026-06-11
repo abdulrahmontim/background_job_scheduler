@@ -1,0 +1,45 @@
+from fastapi import APIRouter, Depends, status
+
+from app.database import get_db
+from app.dependencies import get_job_query, get_job_service
+from uuid import UUID
+
+from app.schemas.job import JobCreate, JobResponse
+from app.services.job_service import JobService
+
+
+router = APIRouter()
+
+
+@router.post("", response_model=JobResponse, status_code=status.HTTP_201_CREATED)
+async def create_job(
+    data: JobCreate,
+    service: JobService = Depends(get_job_service)
+):
+
+    return await service.create_job(data)
+
+
+@router.get("", response_model=list[JobResponse])
+async def list_jobs(
+    service: JobService = Depends(get_job_service)
+):
+   return await service.list_jobs()
+
+
+@router.get("/pending/due", response_model=list[JobResponse])
+async def get_pending_due_jobs(
+    service: JobService = Depends(get_job_service)
+):
+    return await service.get_pending_due_jobs()
+
+
+@router.get("/{job_id}")
+async def get_job(job_id: UUID, service: JobService = Depends(get_job_service)):
+    return await service.get_job_by_id(job_id)
+
+
+@router.post("/{job_id}/cancel")
+async def cancel_job(job_id: UUID, service: JobService = Depends(get_job_service)):
+    return await service.cancel_job(job_id)
+
