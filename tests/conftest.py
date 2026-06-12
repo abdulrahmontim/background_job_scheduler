@@ -1,15 +1,20 @@
 import pytest_asyncio
+from sqlalchemy import text
+from sqlalchemy.schema import CreateTable, DropTable
 from app.database import engine, Base
 
-@pytest_asyncio.fixture(scope="session", autouse=True)
+@pytest_asyncio.fixture
 async def setup_database():
     """
-    Creates all database tables in the test environment
-    before the test session starts.
+    Creates all database tables before each test and drops them after.
+    Uses pure async DDL to avoid run_sync/greenlet conflicts with asyncpg.
     """
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+        for table in Base.metadata.sorted_tables:
+            compiled = CreateTable(table, if_not_exists=True).compile(engine.sync_engine)
+            await conn.execute(text(str(compiled)))
     yield
-    # Optional: Drop tables after tests finish
     async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.drop_all)
+        for table in reversed(Base.metadata.sorted_tables):
+            compiled = DropTable(table, if_exists=True).compile(engine.sync_engine)
+            await conn.execute(text(str(compiled)))

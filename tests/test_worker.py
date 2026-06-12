@@ -10,7 +10,7 @@ from app.scheduler.manager import JobPoller
 
 
 @pytest_asyncio.fixture
-async def seed_test_jobs():
+async def seed_test_jobs(setup_database):
     """
     Setup: Injects test jobs into the DB.
     Teardown: Deletes them after the test finishes.
