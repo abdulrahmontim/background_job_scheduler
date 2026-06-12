@@ -1,21 +1,25 @@
-import os
-from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import declarative_base
+from app.config import get_settings
 
+settings = get_settings()
 
-load_dotenv()
+connect_args = {}
+pool_args = {}
 
-DATABASE_URL = os.environ.get(
-    "DATABASE_URL",
-    "postgresql+asyncpg://postgres:password@localhost:5432/job_scheduler"
-)
+if "sqlite" in settings.DATABASE_URL:
+    connect_args = {"check_same_thread": False}
+else:
+    pool_args = {
+        "pool_size": 10,
+        "max_overflow": 20
+    }
 
 engine = create_async_engine(
-    DATABASE_URL,
+    settings.DATABASE_URL,
     echo=False,
-    pool_size=10,
-    max_overflow=20
+    **pool_args,
+    connect_args=connect_args
 )
 
 AsyncSessionLocal = async_sessionmaker(

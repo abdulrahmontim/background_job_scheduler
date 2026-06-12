@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     EMAIL_FAILURE_RATE: float = 0.0
     MAX_RETRIES: int = 3
     CONCURRENCY_LIMIT: float = 10
+    STARVATION_THRESHOLD_SECONDS: int = 2
+    STARVATION_CHECK_INTERVAL_SECONDS: int = 30
     
     model_config = SettingsConfigDict(env_file=".env")
 
