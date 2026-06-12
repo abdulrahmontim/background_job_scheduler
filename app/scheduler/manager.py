@@ -1,5 +1,5 @@
 import asyncio
-import logging
+import structlog
 import json
 import uuid
 from datetime import datetime, timezone, timedelta
@@ -10,7 +10,7 @@ from app.database import AsyncSessionLocal
 from app.models.job import Job, JobStatus
 from app.scheduler.heap import MinHeap, JobNode
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class JobPoller:
@@ -20,12 +20,13 @@ class JobPoller:
         self.is_running = False
         
     async def start(self):
-        try:
-            await self._fetch_and_load_jobs()
-        except Exception as e:
-            logger.error(f"Error fetching jobs: {e}")
-            
-        await asyncio.sleep(self.poll_interval)
+        self.is_running = True
+        while self.is_running:
+            try:
+                await self._fetch_and_load_jobs()
+            except Exception as e:
+                logger.error(f"Error fetching jobs: {e}")
+            await asyncio.sleep(self.poll_interval)
         
     async def stop(self):
         self.is_running = False
@@ -102,7 +103,8 @@ class JobPoller:
                 node = JobNode(
                     job_id=job.id,
                     effective_priority=job.effective_priority,
-                    scheduled_at=job.scheduled_at
+                    scheduled_at=job.scheduled_at,
+                    created_at=job.created_at
                 )
                 self.heap.push(node)
                 loaded_count += 1

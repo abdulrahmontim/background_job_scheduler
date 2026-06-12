@@ -1,10 +1,16 @@
 import asyncio
-import logging
 import uuid
 from datetime import datetime, timezone
 import os
+import logging
 from dotenv import load_dotenv
 from sqlalchemy.exc import ProgrammingError
+import structlog
+
+from app.logging_config import configure_logging
+configure_logging()
+
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 from app.database import AsyncSessionLocal, engine, Base
 from app.models.job import Job, JobStatus
@@ -13,24 +19,17 @@ from app.scheduler.manager import JobPoller
 from app.worker.worker import WorkerEngine
 from app.config import get_settings
 
-
-logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
-
-logging.basicConfig(
-    level=logging.INFO, 
-    format="\n[%(levelname)s] %(asctime)s | %(message)s",
-    datefmt="%I:%M:%S %p"
-)
+logger = structlog.get_logger(__name__)
 
 async def init_db():
     """Ensure tables exist, safely ignoring if the Postgres Enum already exists."""
     try:
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-            logging.info("Database schemas verified.")
+            logger.info("Database schemas verified.")
     except ProgrammingError as e:
         if "already exists" in str(e):
-            logging.info("Schema or Enum already exists. Proceeding...")
+            logger.info("Schema or Enum already exists. Proceeding...")
         else:
             raise e
 
@@ -53,7 +52,7 @@ async def seed_test_jobs(count: int = 5):
         ]
         session.add_all(jobs)
         await session.commit()
-        logging.info(f"✅ Seeded {count} test email jobs into the database.")
+        logger.info(f"Seeded {count} test email jobs into the database.")
 
 async def main():
     print("\n--- Booting Execution Pipeline ---")

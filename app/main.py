@@ -1,9 +1,14 @@
 import os
+import logging
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import router as api_router
+from app.logging_config import configure_logging
+
+configure_logging()
+logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
 
 app = FastAPI(
     title="Distributed Background Job Scheduler",

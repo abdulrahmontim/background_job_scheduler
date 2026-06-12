@@ -68,3 +68,57 @@ section {
     background-color: var(--custom-green);
     border-radius: 2px;
 }
+
+.error-cell {
+    display: inline-block;
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ef4444;
+    vertical-align: middle;
+}
+
+code.small {
+    font-size: 0.8em;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.job-id-link {
+    color: var(--custom-green);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.job-id-link:hover {
+    text-decoration: underline !important;
+    color: #2ecc71;
+}
+
+.badge.status-pending {
+    background-color: #f59e0b !important;
+    color: #1a1a2e !important;
+}
+
+.badge.status-processing {
+    background-color: #3b82f6 !important;
+}
+
+.badge.status-completed {
+    background-color: #10b981 !important;
+}
+
+.badge.status-failed {
+    background-color: #ef4444 !important;
+}
+
+.badge.status-cancelled {
+    background-color: #6b7280 !important;
+}
+
+[data-bs-theme="light"] .badge.status-pending {
+    color: #ffffff !important;
+}
