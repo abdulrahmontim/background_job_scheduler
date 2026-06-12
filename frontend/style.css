@@ -1,0 +1,70 @@
+/* --- GLOBAL FIXES & THEME VARS --- */
+section { 
+    scroll-margin-top: 90px; 
+}
+
+:root {
+    --custom-green: #2ecc71;
+    --custom-green-hover: #27ae60;
+}
+
+[data-bs-theme="light"] {
+    --custom-green: #198754;
+    --custom-green-hover: #146c43;
+}
+
+.high-contrast-text { 
+    color: var(--bs-body-color) !important; 
+    font-weight: 600; 
+}
+
+.text-green { 
+    color: var(--custom-green) !important; 
+}
+
+.text-danger-custom { 
+    color: #ef4444 !important; 
+}
+
+/* --- BUTTONS --- */
+.btn-green {
+    background-color: var(--custom-green);
+    color: #ffffff;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-green:hover {
+    background-color: var(--custom-green-hover);
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* --- INTERACTIVE CARDS --- */
+.project-card {
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--custom-green) !important;
+}
+
+/* --- SECTION DECORATIVE BORDERS --- */
+.section-title {
+    position: relative;
+    padding-bottom: 15px;
+    margin-bottom: 40px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 60px;
+    height: 3px;
+    background-color: var(--custom-green);
+    border-radius: 2px;
+}
