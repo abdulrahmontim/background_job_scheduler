@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from uuid import UUID
 import json
-import logging
+import structlog
 
 from sqlalchemy import select, update, delete, and_, or_
 
@@ -33,7 +33,7 @@ class JobQuery:
             try:
                 job.payload = json.loads(job.payload)
             except Exception as e:
-                logging.exception("Something went wrong, couldn't load job. Error: {e}")
+                structlog.get_logger(__name__).exception("Something went wrong, couldn't load job. Error: {e}")
         return job
 
 

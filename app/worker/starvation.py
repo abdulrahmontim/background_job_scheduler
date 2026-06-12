@@ -1,5 +1,5 @@
 import asyncio
-import logging
+import structlog
 from datetime import datetime, timezone, timedelta
 from sqlalchemy import update
 
@@ -8,7 +8,7 @@ from sqlalchemy.engine import CursorResult
 from app.database import AsyncSessionLocal
 from app.models.job import Job, JobStatus
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 async def starvation_daemon():
     """

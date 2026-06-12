@@ -10,6 +10,8 @@ class Settings(BaseSettings):
     CONCURRENCY_LIMIT: float = 10
     STARVATION_THRESHOLD_SECONDS: int = 120
     STARVATION_CHECK_INTERVAL_SECONDS: int = 30
+    DLQ_ALERT_THRESHOLD: int = 10
+    ALERT_EMAIL: str = "admin@dilamme.com"
     
     model_config = SettingsConfigDict(env_file=".env")
 

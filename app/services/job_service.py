@@ -48,8 +48,8 @@ class JobService:
         if not job:
             return None
         
-        if job.status == JobStatus.PROCESSING:
-            raise ValueError("The job is being processed, only pending jobs can be cancelled.")
+        if job.status == JobStatus.COMPLETED:
+            raise ValueError("Cannot cancel a completed job.")
         
         return await self.query.cancel_job(job_id)
 

@@ -1,0 +1,124 @@
+/* --- GLOBAL FIXES & THEME VARS --- */
+section { 
+    scroll-margin-top: 90px; 
+}
+
+:root {
+    --custom-green: #2ecc71;
+    --custom-green-hover: #27ae60;
+}
+
+[data-bs-theme="light"] {
+    --custom-green: #198754;
+    --custom-green-hover: #146c43;
+}
+
+.high-contrast-text { 
+    color: var(--bs-body-color) !important; 
+    font-weight: 600; 
+}
+
+.text-green { 
+    color: var(--custom-green) !important; 
+}
+
+.text-danger-custom { 
+    color: #ef4444 !important; 
+}
+
+/* --- BUTTONS --- */
+.btn-green {
+    background-color: var(--custom-green);
+    color: #ffffff;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.btn-green:hover {
+    background-color: var(--custom-green-hover);
+    color: #ffffff;
+    transform: translateY(-2px);
+}
+
+/* --- INTERACTIVE CARDS --- */
+.project-card {
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.project-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--custom-green) !important;
+}
+
+/* --- SECTION DECORATIVE BORDERS --- */
+.section-title {
+    position: relative;
+    padding-bottom: 15px;
+    margin-bottom: 40px;
+}
+
+.section-title::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 60px;
+    height: 3px;
+    background-color: var(--custom-green);
+    border-radius: 2px;
+}
+
+.error-cell {
+    display: inline-block;
+    max-width: 300px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #ef4444;
+    vertical-align: middle;
+}
+
+code.small {
+    font-size: 0.8em;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.job-id-link {
+    color: var(--custom-green);
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.job-id-link:hover {
+    text-decoration: underline !important;
+    color: #2ecc71;
+}
+
+.badge.status-pending {
+    background-color: #f59e0b !important;
+    color: #1a1a2e !important;
+}
+
+.badge.status-processing {
+    background-color: #3b82f6 !important;
+}
+
+.badge.status-completed {
+    background-color: #10b981 !important;
+}
+
+.badge.status-failed {
+    background-color: #ef4444 !important;
+}
+
+.badge.status-cancelled {
+    background-color: #6b7280 !important;
+}
+
+[data-bs-theme="light"] .badge.status-pending {
+    color: #ffffff !important;
+}

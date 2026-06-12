@@ -1,10 +1,10 @@
 import asyncio
-import logging
+import structlog
 import json
 import uuid
 import os
 from datetime import datetime, timezone, timedelta
-from sqlalchemy import select
+from sqlalchemy import select, func
 from random import uniform
 
 from app.database import AsyncSessionLocal
@@ -13,8 +13,10 @@ from app.models.job import Job, JobStatus
 from app.scheduler.heap import MinHeap, JobNode
 from app.handlers.email_handler import process_email_job
 from app.worker.starvation import starvation_daemon
+from app.config import get_settings
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
+settings = get_settings()
 
 class WorkerEngine:
     def __init__(self, heap: MinHeap):
@@ -111,6 +113,10 @@ class WorkerEngine:
             
             if not job:
                 return
+
+            if job.status == JobStatus.CANCELLED:
+                logger.info(f"Job {job.id} was cancelled. Skipping.")
+                return
                 
             try:
                 if job.type == "email":
@@ -125,7 +131,7 @@ class WorkerEngine:
                     new_scheduled_time = datetime.now(timezone.utc) + timedelta(seconds=job.interval)
                     
                     recurring_job = Job(
-                        id=uuid.uuid4(),  # Ensure clones get new UUIDs
+                        id=uuid.uuid4(),
                         type=job.type,
                         payload=job.payload,
                         priority=job.priority,
@@ -136,23 +142,25 @@ class WorkerEngine:
                         dependencies=[]
                     )
                     session.add(recurring_job)
-                    logger.info(f"🔁 Spawning recurring clone for Job {job.id}. Next run: {new_scheduled_time}")
+                    logger.info(f"Recurring clone for Job {job.id} scheduled next at {new_scheduled_time}")
                     
             except Exception as e:
                 job.retry_count += 1
                 job.error_message = str(e)
+
+                backoff_seconds = [1, 5, 25]
+                idx = min(job.retry_count - 1, 2)
+                delay = backoff_seconds[idx]
+                backoff = delay * uniform(0.8, 1.2)
                 
                 if job.retry_count < 3:
-                    delay = 2 ** job.retry_count
-                    backoff = delay * uniform(0.8, 1.2)                    
-                    
                     job.scheduled_at = datetime.now(timezone.utc) + timedelta(seconds=backoff)
                     job.status = JobStatus.PENDING
                     
-                    logger.warning(f"⚠️ Job {job.id} failed. Retrying in {backoff:.2f}s (Attempt {job.retry_count}/3)")
+                    logger.warning(f"Job {job.id} failed. Retrying in {backoff:.2f}s (Attempt {job.retry_count}/3)")
                 else:
                     job.status = JobStatus.FAILED
-                    logger.error(f"❌ Job {job.id} permanently failed (Attempt 3/3). Routing to DLQ.")
+                    logger.error(f"Job {job.id} permanently failed (Attempt 3/3). Routing to DLQ.")
                     
                     dlq = DeadLetterJob(
                         id=uuid.uuid4(),
@@ -162,6 +170,10 @@ class WorkerEngine:
                         error_message=job.error_message
                     )
                     session.add(dlq)
+
+                    dlq_count = await session.scalar(select(func.count(DeadLetterJob.id)))
+                    if dlq_count and dlq_count >= settings.DLQ_ALERT_THRESHOLD:
+                        logger.warning(f"DLQ threshold reached: {dlq_count} items (threshold={settings.DLQ_ALERT_THRESHOLD}). Alert sent to {settings.ALERT_EMAIL}")
                     
             finally:
                 await session.commit()
@@ -172,7 +184,7 @@ class WorkerEngine:
             query = select(Job).where(
                 Job.status == JobStatus.PENDING,
                 Job.scheduled_at <= datetime.now(timezone.utc)
-            )
+            ).with_for_update(skip_locked=True)
             result = await session.execute(query)
             due_jobs = result.scalars().all()
 
@@ -182,9 +194,11 @@ class WorkerEngine:
                 if not await self._is_topologically_ready(session, job):
                     continue
 
-                node = JobNode(effective_priority=job.effective_priority, job_id=job.id, scheduled_at=job.scheduled_at)
+                job.status = JobStatus.PROCESSING
+                node = JobNode(effective_priority=job.effective_priority, job_id=job.id, scheduled_at=job.scheduled_at, created_at=job.created_at)
                 self.heap.push(node)
                 loaded_count += 1
 
+            await session.commit()
             if loaded_count > 0:
                 logger.info(f"Loaded {loaded_count} new jobs into the MinHeap")

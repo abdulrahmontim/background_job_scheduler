@@ -4,10 +4,11 @@ from uuid import UUID
 
 class JobNode:
     
-    def __init__(self, job_id: UUID, effective_priority: int, scheduled_at: datetime):
+    def __init__(self, job_id: UUID, effective_priority: int, scheduled_at: datetime, created_at: datetime | None = None):
         self.job_id = job_id
         self.effective_priority = effective_priority
         self.scheduled_at = scheduled_at
+        self.created_at = created_at or scheduled_at
         
         
     def __lt__(self, other: "JobNode"):
@@ -17,7 +18,7 @@ class JobNode:
         if self.scheduled_at != other.scheduled_at:
             return self.scheduled_at < other.scheduled_at
 
-        return str(self.job_id) < str(other.job_id)
+        return self.created_at < other.created_at
     
     def __repr__(self) -> str:
         return f"JobNode: {self.job_id} | Priority: {self.effective_priority}"

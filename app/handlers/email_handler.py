@@ -1,12 +1,12 @@
 import os
 import asyncio
 from random import uniform, random
-import logging
+import structlog
 from app.config import get_settings
 
 settings = get_settings()
 
-logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 FAILURE_RATE = float(os.getenv("EMAIL_FAILURE_RATE", "0.0"))
 
