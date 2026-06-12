@@ -69,6 +69,9 @@ class MinHeap:
     def peek(self):
         return self._heap[0] if self._heap else None
     
+    def is_empty(self):
+        return len(self._heap) == 0
+    
     def __len__(self):
         return len(self._heap)
     

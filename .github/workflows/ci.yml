@@ -26,11 +26,13 @@ jobs:
           --health-retries 5
 
     env:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@localhost:5432/scheduler_test
-      SECRET_KEY: ci-secret-key-not-used-in-prod
-      DLQ_ALERT_THRESHOLD: 10
-      STARVATION_THRESHOLD_MINUTES: 15
-      WORKER_POLL_INTERVAL: 1
+      DATABASE_URL: "sqlite+aiosqlite:///:memory:"
+      SECRET_KEY: "ci-secret-key-not-used-in-prod"
+      DLQ_ALERT_THRESHOLD: "10"
+      STARVATION_THRESHOLD_MINUTES: "15"
+      WORKER_POLL_INTERVAL: "1"
+      CONCURRENCY_LIMIT: "5"
+      EMAIL_FAILURE_RATE: "0.0"
 
     steps:
       - name: Checkout code
