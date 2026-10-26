@@ -1,9 +1,7 @@
 # Background Job Scheduler
 
-**HNG Stage 9** — Dilamme Engineering Task
-
 Heap-based distributed background job scheduler with DAG dependency resolution, starvation prevention, real-time SSE dashboard, and dead-letter queue.
-
+Live Dashboard: [Link](https://abdulrahmon-scheduler.duckdns.org)
 ---
 
 ## Quick Start (Development)
